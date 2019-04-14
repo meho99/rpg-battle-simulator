@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Field from '../worldElements/fieldComponent'
+import Field from './fieldComponent'
 import * as THREE from 'three'
 import OrbitControls from 'threejs-orbit-controls';
 import * as OBJLoader from 'three-obj-loader';
@@ -18,6 +18,7 @@ import warriorModel from '../../assets/models/warrior.obj'
 import warriorText from '../../assets/models/warrior.png'
 import wizardModel from '../../assets/models/wizard.obj'
 import wizardText from '../../assets/models/wizard.png'
+import wallText from '../../assets/models/wallTexture.jpg'
 
 OBJLoader(THREE);
 //TextSprite(THREE)
@@ -29,11 +30,19 @@ export default class ThreeContainer extends Component {
         this.state = {
             board: this.props.board,
             playerModels: [],
-            obstacleModels: []
         }
-
+        this.obstacleModels= [ // tablica modeli przeszkód
+            [
+                new THREE.Group(),
+                new THREE.Group(),
+                new THREE.Group(),
+                new THREE.Group(),
+            ],
+            new THREE.Group(), // sciany
+        ]
         this.boxGeometry = new THREE.BoxGeometry(10, 1, 10); // geometria pól
         this.three = THREE;
+
 
     }
 
@@ -216,17 +225,18 @@ export default class ThreeContainer extends Component {
 
     initModels = () => {
         // ----- model i textura przeszkody -----
-        this.stone = new THREE.Group()
-        this.loadModel(rockModel, this.stone, rockText, { x: 0.2, y: 0.125, z: 0.2 })
+        this.loadModel(rockModel, this.obstacleModels[0][0], rockText, { x: 0.2, y: 0.125, z: 0.2 }) // kamien
+        this.loadModel(treeModel, this.obstacleModels[0][1], treeText, { x: 0.125, y: 0.125, z: 0.125 }) // drzewo 1
+        this.loadModel(tree2Model, this.obstacleModels[0][2], tree2Text, { x: 1.5, y: 1.5, z: 1.5 }) // drzewo 2
+        this.loadModel(bushModel, this.obstacleModels[0][3], bushText, { x: 0.08, y: 0.08, z: 0.08 }) // drzewo 3
 
-        this.tree = new THREE.Group()
-        this.loadModel(treeModel, this.tree, treeText, { x: 0.125, y: 0.125, z: 0.125 })
+        // model ściany
 
-        this.tree2 = new THREE.Group()
-        this.loadModel(tree2Model, this.tree2, tree2Text, { x: 1.5, y: 1.5, z: 1.5 })
-
-        this.bush= new THREE.Group()
-        this.loadModel(bushModel, this.bush, bushText,{x:0.08,y:0.08,z:0.08})
+        let geometry = new THREE.BoxGeometry(10, 12, 6);
+        let texture = new THREE.TextureLoader().load( wallText );
+        let material = new THREE.MeshBasicMaterial({  map: texture});
+        let wall = new THREE.Mesh(geometry, material);
+        this.obstacleModels[1]= wall;
 
         // model i textura gracza 
         this.warriorModel = new THREE.Group()
@@ -234,16 +244,17 @@ export default class ThreeContainer extends Component {
 
         this.wizardModel = new THREE.Group()
         this.loadModel(wizardModel, this.wizardModel, wizardText, { x: 23, y: 23, z: 23 })
-
-
     }
+
+
+
 
     // -------------- tworzenie napisów ----------
 
-    textInit = (text, x,y,z) => {
+    textInit = (text, x, y, z) => {
         var sprite = new SpriteText2D(text, { align: textAlign.center, font: '50px Arial', fillStyle: 'red', antialias: true })
-        sprite.scale.set(0.1,0.1,0.1)
-        sprite.position.set(x,y,z)
+        sprite.scale.set(0.1, 0.1, 0.1)
+        sprite.position.set(x, y, z)
         return sprite;
     }
 
@@ -267,30 +278,27 @@ export default class ThreeContainer extends Component {
                 this.boardGroup.add(cube)  // tworzenie pol tablicy, ktore beda reagowa na eventy myszy
                 cube.userData = { coords: [indexI, indexJ], number: j.number, name: j.name, model: j.model }
                 cube.position.set(startX + indexJ * 12, 0, startZ + indexI * 12)
+
+                // przeszkody
                 if (Number(j.number) === 4 && j.model) {
                     var obstacle;
-                    if (Number(j.model) === 1)
-                    {
-                        obstacle = this.tree.clone()
-                        obstacle.position.set(startX + indexJ * 12 +11, 1, startZ + indexI * 12+50);
-                    }
-                    else if (Number(j.model) === 2){
-                        obstacle = this.stone.clone()
-                        obstacle.position.set(startX + indexJ * 12 , 3, startZ + indexI * 12);
-                    }
-                    else if (Number(j.model) === 3){
-                        obstacle = this.bush.clone()
-                        obstacle.position.set(startX + indexJ * 12 , 1, startZ + indexI * 12);
-                    }   
-                    else if (Number(j.model) === 4){
-                        obstacle = this.tree2.clone()
-                        obstacle.position.set(startX + indexJ * 12 , 1, startZ + indexI * 12);
-                    }
 
+                    if (this.props.obstaclesType === 'nature') {
+                        obstacle = this.obstacleModels[0][Number(j.model) - 1].clone()
+                        obstacle.position.set(startX + indexJ * 12, 1, startZ + indexI * 12)
+
+                        if (Number(j.model) === 2) obstacle.position.set(startX + indexJ * 12 + 11, 1, startZ + indexI * 12 + 50);
+                    }
+                    
+                    else if (this.props.obstaclesType === 'walls') {
+                        obstacle = this.obstacleModels[1].clone()
+                        obstacle.position.set(startX + indexJ * 12, 6, startZ + indexI * 12-2)
+                    }
 
                     this.boardGroup.add(obstacle)
-
                 }
+
+                // gracze
                 if (Number(j.number) === 3 && j.model) {
                     var warrior
                     if (Number(j.model) === 2) {
@@ -304,7 +312,7 @@ export default class ThreeContainer extends Component {
                         warrior.position.set(startX + indexJ * 12, 0, startZ + indexI * 12)
                     }
                     this.boardGroup.add(warrior)
-                    this.boardGroup.add(this.textInit(String(j.name),startX + indexJ * 12, 25, startZ + indexI * 12))
+                    this.boardGroup.add(this.textInit(String(j.name), startX + indexJ * 12, 25, startZ + indexI * 12))
                 }
             });
         })

@@ -6,7 +6,8 @@ const db = fb.firestore();
 
 // ----- dodawanie danych do firebase -----
 
-const FirebaseAdd = (length, coords,name)=>{
+const FirebaseAdd = (length, coords,name, obstaclesType)=>{
+
     var obstacles = db.collection('obstacles');
     if(coords.length===0) alert('Board is empty !!')
     else if(name.length===0) alert('Name is empty !!')
@@ -16,7 +17,7 @@ const FirebaseAdd = (length, coords,name)=>{
                 length: length,
                 name:name,
                 coords: coords,
-                
+                obstacles: obstaclesType
             })
             alert('Board added to database')
         }

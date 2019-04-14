@@ -43,11 +43,12 @@ export default class MiniMap extends Component {
 
         return (
             <div className='paramDiv' style={styles.container} >
-                <div className='paramDiv' style={{display:'flex', flexDirection:'column', justifyContent:'center', border:'3px solid black'}}>{map}</div>
-                <div style={{display:'flex', flexDirection:'column', justifyContent:'center'}}>
+                <div className='paramDiv' style={{display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center',border:'3px solid black'}}>{map}</div>
+                <div style={{display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center'}}>
                     <p style={styles.name}> name : {this.props.name}</p>
                     <p style={styles.size}> size : {this.props.length}</p>
-                    <button onClick={()=>{ this.props.start(this.props.length, this.props.coords) }} className='paramDiv' style={{ fontSize:'0.9vw',outline:'none',borderRadius: 50, color:'black', border:'2px solid black', backgroundColor:'#a8cd98', fontWeight:'bold', width: '10vw' }}>Start</button>
+                    <p style={styles.size}> obstacles : {this.props.obstacles}</p>
+                    <button onClick={()=>{ this.props.start(this.props.length, this.props.coords, this.props.obstacles) }} className='paramDiv' style={{ fontSize:'0.9vw',outline:'none',borderRadius: 50, color:'black', border:'2px solid black', backgroundColor:'#a8cd98', fontWeight:'bold', width: '10vw' }}>Start</button>
                 </div>
                 
             </div>
@@ -57,5 +58,5 @@ export default class MiniMap extends Component {
 const styles={
     name:{fontSize: '1.8vw', margin: 0, fontWeight:'bold', textDecoration:'underline'},
     size:{fontSize: '1.2vw',color:'#8f5b91', fontWeight:'bold'},
-    container:{display:'flex',backgroundImage: 'linear-gradient(to bottom, #313641, #2e333d, #2c303a, #292e36, #272b33, #262a31, #24282f, #23272d, #22272c, #22262b, #21262b, #21252a)', borderRadius:50, flexDirection:'row', justifyContent:'space-around', alignSelf:'center', marginTop: 30, border:'3px solid black', width:'75vw', padding: 10,}
+    container:{display:'flex',backgroundImage: 'linear-gradient(to bottom, #313641, #2e333d, #2c303a, #292e36, #272b33, #262a31, #24282f, #23272d, #22272c, #22262b, #21262b, #21252a)', borderRadius:50, flexDirection:'row', justifyContent:'space-evenly', alignSelf:'center', marginTop: 30, border:'3px solid black', alignItems: 'center', width:'35vw', padding: 10,}
 }

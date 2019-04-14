@@ -16,7 +16,8 @@ export default class Game extends Component {
             boardTab: [], // tablica (plansza)
             boardSize: 0, // wielkosc planszy
             clickedPlayer: '', // akualny klikniety gracz
-            name: ''
+            name: '',
+            obstaclesType: 'nature'// wygląd przeszkód
         };
         this.playerstab = [] // tablica zawierajaca wsyztskich dodanych graczy
         this.obstacleTab = [] // tablica z przeszkodami
@@ -45,7 +46,7 @@ export default class Game extends Component {
 
     // ----- start gry -----
 
-    start = async (size, coords) => {
+    start = async (size, coords, obstacles) => {
         await this.setState({ boardSize: size }, async () => {
             this.makeEmptyBoard("boardTab");
 
@@ -53,6 +54,8 @@ export default class Game extends Component {
         coords.map((i) => {
             this.obstacleTab.push(new Obstacle(i.x, i.y, this.state.boardTab, this.boardUpdate, this.setClickedPlayer))
         })
+        if(obstacles)
+            this.setState({obstaclesType: obstacles})
 
     }
 
@@ -67,7 +70,7 @@ export default class Game extends Component {
 
     updateNames = () => {
         let tabpom = this.state.boardTab;
-        var update=(tab)=>{
+        var update = (tab) => {
             tab.forEach((player, index) =>  // wywoluje funkcje sprawdzajaca dla wsyztskich graczy
             {
                 tabpom[player.x][player.y].name = player.name;
@@ -216,7 +219,7 @@ export default class Game extends Component {
             var y = i.y
             return { x, y }
         })
-        FirebaseAdd(this.state.boardSize, coords, this.state.name)
+        FirebaseAdd(this.state.boardSize, coords, this.state.name, this.state.obstaclesType)
     }
 
     // ----- czyszczenie planszy z pokazywania zasiegu gracza -----
@@ -229,6 +232,12 @@ export default class Game extends Component {
             }
         }
         if (!this.state.clickedPlayer) this.boardUpdate(tabPom)
+    }
+
+    // ----- zamiana wyglądu przeszkód -----
+
+    changeObstaclesType = (element) => {
+        this.setState({ obstaclesType: element.target.value })
     }
 
 
@@ -257,7 +266,7 @@ export default class Game extends Component {
                             :
                             <div style={{ display: 'flex', flexDirection: 'column', width: '85vw', alignItems: 'center' }}>
 
-                                <ThreeContainer board={this.state.boardTab} getPlayerByTabIndex={this.getPlayerByTabIndex} outFunction={this.clearPlayground} />
+                                <ThreeContainer board={this.state.boardTab} getPlayerByTabIndex={this.getPlayerByTabIndex} outFunction={this.clearPlayground} obstaclesType={this.state.obstaclesType} />
 
                             </div>
                     }
@@ -275,19 +284,33 @@ export default class Game extends Component {
                             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                                 <div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
 
-                                    <button className='paramDiv' style={{ borderRadius: 20, backgroundColor: '#0e1111', border: '2px solid #8f5b91', color: 'white', fontSize: 20, outline:'none' }} onClick={this.addPlayer}> + Player </button>
-                                    <button className='paramDiv' style={{ borderRadius: 20, backgroundColor: '#0e1111', border: '2px solid #8f5b91', color: 'white', fontSize: 20,outline:'none' }} onClick={this.addObstacle}> + Obstacle </button>
+                                    <button className='paramDiv' style={{ borderRadius: 20, backgroundColor: '#0e1111', border: '2px solid #8f5b91', color: 'white', fontSize: 20, outline: 'none' }} onClick={this.addPlayer}> + Player </button>
+                                    <button className='paramDiv' style={{ borderRadius: 20, backgroundColor: '#0e1111', border: '2px solid #8f5b91', color: 'white', fontSize: 20, outline: 'none' }} onClick={this.addObstacle}> + Obstacle </button>
 
                                 </div>
 
-                                <button className='paramDiv' style={{ marginTop: 20, fontWeight: 'bold', color: '#8f5b91',outline:'none', padding: 6, backgroundColor: 'white', border: '2px solid black', borderRadius: 20 }} onClick={() => { // sortowanie graczy po inicjatywie
+                                <div style={{ marginTop: 20, fontWeight: 'bold', color: '#8f5b91', fontSize: 22 }}>
+                                    Obstacles :
+                                    <select className='paramDiv' value={this.state.obstaclesType} onChange={this.changeObstaclesType} style={{ marginLeft: 10, border: '2px solid black', fontSize: 18, outline: 'none', borderRadius: 20, backgroundColor: 'white', color: '#8f5b91' }}>
+                                        <option value='nature'>nature</option>
+                                        <option value='walls'>walls</option>
+                                    </select>
+                                </div>
+
+                                <button className='paramDiv' style={{ marginTop: 10, fontWeight: 'bold', color: '#8f5b91', outline: 'none', padding: 6, backgroundColor: 'white', border: '2px solid black', borderRadius: 20 }} onClick={() => { // sortowanie graczy po inicjatywie
                                     this.playerstab.sort(dynamicSort('-initative')); this.setState({})
                                 }}> S O R T  </button>
 
+
                                 {playerEdition}
 
-                                <label style={{ fontWeight: 'bold', color: '#8f5b91', fontSize: 25, margin: 10 }}>board name :<input type='text' onChange={this.changeName} value={this.state.name} className='paramDiv' style={{ border: '2px solid black', color: '#8f5b91', textAlign: 'center', fontWeight: 'bold', fontSize: 20, borderRadius: 50, width: '9vw' }} /></label>
-                                <button className='paramDiv' style={{ backgroundColor: '#8f5b91', border: '2px solid black', outline:'none', marginTop: 20, borderRadius: 20, fontSize: 18 }} onClick={this.addToDataBase}> Add To Database </button>
+
+
+                                <div style={{ marginTop: 20, borderTop: '2px solid white' }} >
+                                    <label style={{ fontWeight: 'bold', color: '#8f5b91', fontSize: 25, margin: 10 }}>board name :<input type='text' onChange={this.changeName} value={this.state.name} className='paramDiv' style={{ border: '2px solid black', color: '#8f5b91', textAlign: 'center', fontWeight: 'bold', fontSize: 20, borderRadius: 50, width: '9vw' }} /></label>
+                                    <button className='paramDiv' style={{ backgroundColor: '#8f5b91', border: '2px solid black', outline: 'none', marginTop: 20, borderRadius: 20, fontSize: 18 }} onClick={this.addToDataBase}> Add To Database </button>
+                                </div>
+
                             </div>
                     }
                 </div>
